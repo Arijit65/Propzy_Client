@@ -35,7 +35,7 @@ const AdminDashboard = () => {
       description: 'Manage existing listings',
       icon: List,
       color: 'bg-green-600',
-      link: '/properties'
+      link: '/admin/properties'
     },
     {
       label: 'User Management',

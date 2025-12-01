@@ -1,12 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, User, Bell, Menu, X } from 'lucide-react';
+import PostPropertyComingPopup from './PostPropertyComingPopup';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isPostPropertyPopupOpen, setIsPostPropertyPopupOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset;
+      setIsScrolled(scrollTop > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const dropdownMenus = {
     buyers: {
@@ -187,7 +201,7 @@ const Navbar = () => {
         {
           title: '',
           content: (
-            <div className="bg-gradient-to-br from-green-50 to-blue-50 p-5 rounded-lg border border-green-200">
+            <div className="bg-linear-to-br from-green-50 to-blue-50 p-5 rounded-lg border border-green-200">
               <h4 className="font-bold text-gray-900 mb-2 text-sm leading-tight">
                 Sell or rent faster at<br />the right price!
               </h4>
@@ -197,7 +211,7 @@ const Navbar = () => {
               <button
                 onClick={() => {
                   setActiveDropdown(null);
-                  navigate('/post-property');
+                  setIsPostPropertyPopupOpen(true);
                 }}
                 className="bg-purple-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-purple-700 transition text-sm w-full shadow-md"
               >
@@ -229,7 +243,7 @@ const Navbar = () => {
         {
           title: '',
           content: (
-            <div className="bg-gradient-to-br from-green-50 to-blue-50 p-5 rounded-lg border border-green-200">
+            <div className="bg-linear-to-br from-green-50 to-blue-50 p-5 rounded-lg border border-green-200">
               <h4 className="font-bold text-gray-900 mb-2 text-sm leading-tight">
                 Sell or rent faster at<br />the right price!
               </h4>
@@ -239,7 +253,7 @@ const Navbar = () => {
               <button
                 onClick={() => {
                   setActiveDropdown(null);
-                  navigate('/post-property');
+                  setIsPostPropertyPopupOpen(true);
                 }}
                 className="bg-purple-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-purple-700 transition text-sm w-full shadow-md"
               >
@@ -271,19 +285,33 @@ const Navbar = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50"
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/95 backdrop-blur-sm shadow-sm' 
+          : 'bg-transparent'
+      }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 cursor-pointer">
-            <span className="text-xl font-bold text-purple-600">Propszy</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-700 via-purple-400 to-purple-600 bg-clip-text text-transparent">
+              Propszy
+            </span>
           </Link>
 
           {/* Location Dropdown */}
-          <div className="hidden md:flex items-center space-x-1 cursor-pointer hover:bg-gray-100 px-2 py-1.5 rounded transition">
-            <span className="text-gray-700 font-medium text-xs">All India</span>
-            <ChevronDown className="w-3 h-3 text-gray-700" />
+          <div className={`hidden md:flex items-center space-x-1 cursor-pointer hover:bg-white/10 px-2 py-1.5 rounded transition ${
+            isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
+          }`}>
+            <span className={`font-medium text-xs transition-colors duration-300 ${
+              isScrolled ? 'text-gray-700' : 'text-white'
+            }`}>
+              All India
+            </span>
+            <ChevronDown className={`w-3 h-3 transition-colors duration-300 ${
+              isScrolled ? 'text-gray-700' : 'text-white'
+            }`} />
           </div>
 
           {/* Navigation Links with Dropdowns */}
@@ -295,7 +323,9 @@ const Navbar = () => {
                 onMouseEnter={() => handleMouseEnter(key)}
                 onMouseLeave={handleMouseLeave}
               >
-                <button className="text-gray-700 hover:text-purple-600 transition font-medium px-3 py-2 flex items-center space-x-1 text-xs">
+                <button className={`hover:text-purple-600 transition font-medium px-3 py-2 flex items-center space-x-1 text-xs ${
+                  isScrolled ? 'text-gray-700' : 'text-white hover:text-purple-300'
+                }`}>
                   <span>{menu.title}</span>
                 </button>
 
@@ -359,7 +389,9 @@ const Navbar = () => {
 
             <Link
               to="/insights"
-              className="relative text-gray-700 hover:text-purple-600 transition font-medium px-3 py-2 text-xs"
+              className={`relative hover:text-purple-600 transition font-medium px-3 py-2 text-xs ${
+                isScrolled ? 'text-gray-700' : 'text-white hover:text-purple-300'
+              }`}
             >
               Insights
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
@@ -371,32 +403,58 @@ const Navbar = () => {
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => navigate('/post-property')}
-              className="hidden md:flex items-center bg-purple-600 text-white px-4 py-1.5 rounded-lg hover:bg-purple-700 transition font-bold shadow-sm text-xs"
+              onClick={() => setIsPostPropertyPopupOpen(true)}
+              className={`hidden md:flex items-center px-4 py-1.5 rounded-lg transition font-bold shadow-sm text-xs ${
+                isScrolled 
+                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                  : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border border-white/30'
+              }`}
             >
               <span>Post property</span>
               <span className="ml-2 bg-green-500 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">FREE</span>
             </button>
-            <button className="p-1.5 rounded-full hover:bg-gray-100 transition">
-              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className={`p-1.5 rounded-full transition ${
+              isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
+            }`}>
+              <svg className={`w-4 h-4 transition-colors duration-300 ${
+                isScrolled ? 'text-gray-700' : 'text-white'
+              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </button>
-            <button className="p-1.5 rounded-full hover:bg-gray-100 transition relative">
-              <Bell className="w-4 h-4 text-gray-700" />
+            <button className={`p-1.5 rounded-full transition relative ${
+              isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
+            }`}>
+              <Bell className={`w-4 h-4 transition-colors duration-300 ${
+                isScrolled ? 'text-gray-700' : 'text-white'
+              }`} />
               <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
             </button>
-            <button className="flex items-center space-x-1 hover:bg-gray-100 px-2 py-1.5 rounded transition">
-              <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
+            <button className={`flex items-center space-x-1 px-2 py-1.5 rounded transition ${
+              isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
+            }`}>
+              <div className="w-6 h-6 bg-linear-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
-              <ChevronDown className="w-3 h-3 text-gray-700" />
+              <ChevronDown className={`w-3 h-3 transition-colors duration-300 ${
+                isScrolled ? 'text-gray-700' : 'text-white'
+              }`} />
             </button>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-1.5 rounded hover:bg-gray-100 transition"
+              className={`lg:hidden p-1.5 rounded transition ${
+                isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
+              }`}
             >
-              {isMenuOpen ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
+              {isMenuOpen ? (
+                <X className={`w-5 h-5 transition-colors duration-300 ${
+                  isScrolled ? 'text-gray-700' : 'text-white'
+                }`} />
+              ) : (
+                <Menu className={`w-5 h-5 transition-colors duration-300 ${
+                  isScrolled ? 'text-gray-700' : 'text-white'
+                }`} />
+              )}
             </button>
           </div>
         </div>
@@ -407,20 +465,30 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden py-4 border-t border-gray-200"
+            className={`lg:hidden py-4 border-t transition-colors duration-300 ${
+              isScrolled ? 'border-gray-200 bg-white/95' : 'border-white/20 bg-black/20 backdrop-blur-sm'
+            }`}
           >
             <div className="flex flex-col space-y-2">
               {Object.entries(dropdownMenus).map(([key, menu]) => (
-                <a key={key} href="#" className="text-gray-700 hover:text-purple-600 hover:bg-gray-100 transition py-2 px-3 rounded font-medium text-sm">
+                <a key={key} href="#" className={`hover:text-purple-600 transition py-2 px-3 rounded font-medium text-sm ${
+                  isScrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'
+                }`}>
                   {menu.title}
                 </a>
               ))}
-              <Link to="/insights" className="text-gray-700 hover:text-purple-600 hover:bg-gray-100 transition py-2 px-3 rounded font-medium text-sm">
+              <Link to="/insights" className={`hover:text-purple-600 transition py-2 px-3 rounded font-medium text-sm ${
+                isScrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'
+              }`}>
                 Insights
               </Link>
               <button
-                onClick={() => navigate('/post-property')}
-                className="bg-purple-600 text-white px-4 py-2.5 rounded-lg hover:bg-purple-700 transition font-bold text-left mt-2"
+                onClick={() => setIsPostPropertyPopupOpen(true)}
+                className={`px-4 py-2.5 rounded-lg transition font-bold text-left mt-2 ${
+                  isScrolled 
+                    ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                    : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border border-white/30'
+                }`}
               >
                 Post property FREE
               </button>
@@ -428,6 +496,12 @@ const Navbar = () => {
           </motion.div>
         )}
       </div>
+      
+      {/* Post Property Coming Soon Popup */}
+      <PostPropertyComingPopup 
+        isOpen={isPostPropertyPopupOpen} 
+        onClose={() => setIsPostPropertyPopupOpen(false)} 
+      />
     </motion.nav>
   );
 };

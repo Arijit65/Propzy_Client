@@ -11,6 +11,7 @@ import PropertyDetailPage from './pages/PropertyDetailPage'
 import AdminLoginPage from './pages/admin-view/AdminLoginPage'
 import AdminDashboard from './pages/admin-view/AdminDashboard'
 import AdminPostPropertyPage from './pages/admin-view/AdminPostPropertyPage'
+import AllPropertyListing from './pages/admin-view/AllPropertyListing'
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
               <>
                 <Navbar />
                 <HomePage />
-                <Footer />
+                {/* <Footer /> */}
               </>
             }
           />
@@ -75,6 +76,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminPostPropertyPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/properties"
+            element={
+              <ProtectedRoute>
+                <AllPropertyListing />
               </ProtectedRoute>
             }
           />

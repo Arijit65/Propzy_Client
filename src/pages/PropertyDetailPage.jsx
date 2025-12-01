@@ -660,11 +660,11 @@ This property is under construction phase. The flat is semifurnished. This resid
                     <h3 className="text-lg font-bold text-gray-900 mb-3">Features</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {formattedProperty.amenities && formattedProperty.amenities.map((amenity, index) => {
-                        const Icon = amenity.icon;
+                        const Icon = typeof amenity.icon === 'function' ? amenity.icon : Check;
                         return (
                           <div key={index} className="flex items-center gap-2">
                             <Icon className="w-5 h-5 text-purple-600" />
-                            <span className="text-sm text-gray-700">{amenity.label}</span>
+                            <span className="text-sm text-gray-700">{amenity.label || amenity}</span>
                           </div>
                         );
                       })}
@@ -675,11 +675,11 @@ This property is under construction phase. The flat is semifurnished. This resid
                   <div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {formattedProperty.features && formattedProperty.features.map((feature, index) => {
-                        const Icon = feature.icon;
+                        const Icon = typeof feature.icon === 'function' ? feature.icon : Check;
                         return (
                           <div key={index} className="flex items-center gap-2">
                             <Icon className="w-5 h-5 text-green-600" />
-                            <span className="text-sm text-gray-700">{feature.label}</span>
+                            <span className="text-sm text-gray-700">{feature.label || feature}</span>
                           </div>
                         );
                       })}
