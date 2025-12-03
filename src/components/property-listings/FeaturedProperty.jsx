@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import { MapPin } from "lucide-react";
@@ -13,7 +14,7 @@ function FeaturedProperty() {
     const fetchFeaturedProperties = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/features/featured?limit=6');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/properties/featured?limit=6`);
         const data = await response.json();
         
         if (data.success) {
@@ -149,9 +150,10 @@ function FeaturedProperty() {
         <div className="block md:hidden mb-8">
           <Slider {...mobileSettings}>
             {featuredProjects.map((project) => (
-              <div key={project.id} className="px-1">
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-48">
-                  <div className="relative h-2/3">
+              <div className="px-1" key={project.id}>
+                <Link to={`/property/${project.id}`} className="block">
+                  <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-64">
+                    <div className="relative h-1/2">
                     {project.image ? (
                       <>
                         <img
@@ -166,22 +168,23 @@ function FeaturedProperty() {
                         <MapPin className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
-                  </div>
-                  <div className="p-3">
-                    <h3 className="text-xs font-bold text-gray-900 mb-1 truncate">{project.name}</h3>
-                    <p className="text-xs text-gray-600 truncate">{project.developer}</p>
-                    <p className="text-xs text-gray-600 leading-relaxed">{project.types}</p>
-                    <p className="text-xs text-gray-500 flex items-center">
-                      <span className="mr-1">📍</span>
-                      {project.location}
-                    </p>
-                    <div className="pt-3">
-                      <button className="w-full bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white text-xs font-semibold py-2 rounded-full transition-all duration-200 transform hover:scale-105">
-                        View Details
-                      </button>
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-xs font-bold text-gray-900 mb-1 truncate">{project.name}</h3>
+                      <p className="text-xs text-gray-600 truncate">{project.developer}</p>
+                      <p className="text-xs text-gray-600 leading-relaxed">{project.types}</p>
+                      <p className="text-xs text-gray-500 flex items-center">
+                        <span className="mr-1">📍</span>
+                        {project.location}
+                      </p>
+                      <div className="pt-3">
+                        <button className="w-full bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white text-xs font-semibold py-2 rounded-full transition-all duration-200 transform hover:scale-105">
+                          View Details
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             ))}
           </Slider>
@@ -191,9 +194,10 @@ function FeaturedProperty() {
         <div className="hidden md:block lg:hidden mb-8">
           <Slider {...tabletSettings}>
             {featuredProjects.map((project) => (
-              <div key={project.id} className="px-2">
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-64">
-                  <div className="relative h-2/3">
+              <div className="px-2" key={project.id}>
+                <Link to={`/property/${project.id}`} className="block">
+                  <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-80">
+                    <div className="relative h-1/2">
                     {project.image ? (
                       <>
                         <img
@@ -208,22 +212,23 @@ function FeaturedProperty() {
                         <MapPin className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-sm font-bold text-gray-900 mb-2 truncate">{project.name}</h3>
-                    <p className="text-sm text-gray-600 truncate">{project.developer}</p>
-                    <p className="text-sm text-gray-600 leading-relaxed">{project.types}</p>
-                    <p className="text-sm text-gray-500 flex items-center">
-                      <span className="mr-2">📍</span>
-                      {project.location}
-                    </p>
-                    <div className="pt-4">
-                      <button className="w-full bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white text-sm font-semibold py-3 rounded-full transition-all duration-200 transform hover:scale-105 shadow-lg">
-                        View Details
-                      </button>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-sm font-bold text-gray-900 mb-2 truncate">{project.name}</h3>
+                      <p className="text-sm text-gray-600 truncate">{project.developer}</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{project.types}</p>
+                      <p className="text-sm text-gray-500 flex items-center">
+                        <span className="mr-2">📍</span>
+                        {project.location}
+                      </p>
+                      <div className="pt-4">
+                        <button className="w-full bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white text-sm font-semibold py-3 rounded-full transition-all duration-200 transform hover:scale-105 shadow-lg">
+                          View Details
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             ))}
           </Slider>
@@ -233,39 +238,41 @@ function FeaturedProperty() {
         <div className="hidden lg:block mb-8">
           <Slider {...desktopSettings}>
             {featuredProjects.map((project) => (
-              <div key={project.id} className="px-3">
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-80">
-                  <div className="relative h-3/5">
-                    {project.image ? (
-                      <>
-                        <img
-                          src={project.image}
-                          alt={project.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"></div>
-                      </>
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <MapPin className="w-10 h-10 text-gray-400" />
+              <div className="px-3" key={project.id}>
+                <Link to={`/property/${project.id}`} className="block">
+                  <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-96">
+                    <div className="relative h-1/2">
+                      {project.image ? (
+                        <>
+                          <img
+                            src={project.image}
+                            alt={project.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"></div>
+                        </>
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <MapPin className="w-10 h-10 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-5">
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">{project.name}</h3>
+                      <p className="text-sm text-gray-600">{project.developer}</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{project.types}</p>
+                      <p className="text-sm text-gray-500 flex items-center">
+                        <span className="mr-2">📍</span>
+                        {project.location}
+                      </p>
+                      <div className="pt-4">
+                        <button className="w-full bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white text-sm font-bold py-2.5 rounded-full transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                          View Details
+                        </button>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{project.name}</h3>
-                    <p className="text-sm text-gray-600">{project.developer}</p>
-                    <p className="text-sm text-gray-600 leading-relaxed">{project.types}</p>
-                    <p className="text-sm text-gray-500 flex items-center">
-                      <span className="mr-2">📍</span>
-                      {project.location}
-                    </p>
-                    <div className="pt-4">
-                      <button className="w-full bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white text-sm font-bold py-2.5 rounded-full transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                        View Details
-                      </button>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             ))}
           </Slider>
@@ -289,8 +296,10 @@ function FeaturedProperty() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
   );
 }
+
 
 export default FeaturedProperty;

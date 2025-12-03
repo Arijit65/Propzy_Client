@@ -71,6 +71,7 @@ const PropertyDetailPage = () => {
     phone: '',
     message: 'I am interested in this Property.'
   });
+  const [isSubmittingEnquiry, setIsSubmittingEnquiry] = useState(false);
 
   // Fetch property data
   useEffect(() => {
@@ -309,6 +310,59 @@ This property is under construction phase. The flat is semifurnished. This resid
 
   const toggleShortlist = () => {
     setIsShortlisted(!isShortlisted);
+  };
+
+  // Handle contact form submission
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!contactForm.name || !contactForm.phone) {
+      alert('Please fill in your name and phone number');
+      return;
+    }
+
+    setIsSubmittingEnquiry(true);
+
+    try {
+      const response = await fetch('http://localhost:5001/api/user/enquiry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: contactForm.name,
+          email: contactForm.email || 'not-provided@propzy.com',
+          phone: contactForm.phone,
+          message: contactForm.message,
+          userType: contactForm.userType,
+          reason: contactForm.reason,
+          propertyId: property?.id || id,
+          source: 'property_detail'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(data.message);
+        // Reset form
+        setContactForm({
+          userType: 'Individual',
+          reason: 'Investment',
+          name: '',
+          phone: '',
+          message: 'I am interested in this Property.'
+        });
+      } else {
+        alert(data.error || 'Failed to submit enquiry. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting enquiry:', error);
+      alert('Failed to submit enquiry. Please check your connection and try again.');
+    } finally {
+      setIsSubmittingEnquiry(false);
+    }
   };
 
   // Loading state
@@ -771,7 +825,7 @@ This property is under construction phase. The flat is semifurnished. This resid
                     {/* Right - Contact Form */}
                     <div className="md:w-2/3">
                       <h3 className="text-lg font-bold text-gray-900 mb-4">Send enquiry to Dealer</h3>
-                      <div className="space-y-4">
+                      <form onSubmit={handleContactSubmit} className="space-y-4">
                         <div className="flex gap-4">
                           <div>
                             <p className="text-sm text-gray-600 mb-2">You are</p>
@@ -832,6 +886,17 @@ This property is under construction phase. The flat is semifurnished. This resid
                             placeholder="Name"
                             value={contactForm.name}
                             onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                            required
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <input
+                            type="email"
+                            placeholder="Email (optional)"
+                            value={contactForm.email || ''}
+                            onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -845,6 +910,7 @@ This property is under construction phase. The flat is semifurnished. This resid
                             placeholder="Phone Number"
                             value={contactForm.phone}
                             onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                            required
                             className="flex-1 px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -863,10 +929,21 @@ This property is under construction phase. The flat is semifurnished. This resid
                           I agree to the <a href="#" className="text-purple-600 hover:underline">Terms & Conditions</a> and <a href="#" className="text-purple-600 hover:underline">Privacy Policy</a>
                         </div>
 
-                        <button className="bg-purple-600 text-white px-8 py-2 rounded font-semibold hover:bg-purple-700 transition">
-                          Send Email & SMS
+                        <button 
+                          type="submit"
+                          disabled={isSubmittingEnquiry}
+                          className="bg-purple-600 text-white px-8 py-2 rounded font-semibold hover:bg-purple-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          {isSubmittingEnquiry ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>Sending...</span>
+                            </>
+                          ) : (
+                            'Send Enquiry'
+                          )}
                         </button>
-                      </div>
+                      </form>
                     </div>
                   </div>
                 </div>

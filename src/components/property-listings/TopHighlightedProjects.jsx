@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 
 const TopHighlightedProjects = () => {
@@ -6,13 +7,25 @@ const TopHighlightedProjects = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Responsive cards per slide - MOVED HERE BEFORE ANY CONDITIONAL RETURNS
+  const getCardsPerSlide = () => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth >= 1024) return 3; // Desktop: 3 cards
+      if (window.innerWidth >= 768) return 2;  // Tablet: 2 cards
+      return 1; // Mobile: 1 card
+    }
+    return 3; // Default for SSR
+  };
+
+  const [cardsPerSlide, setCardsPerSlide] = useState(getCardsPerSlide());
 
   // Fetch highlighted properties from API
   useEffect(() => {
     const fetchHighlightedProperties = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/features/highlighted?limit=6');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/properties/highlighted?limit=6`);
         const data = await response.json();
         
         if (data.success) {
@@ -29,6 +42,17 @@ const TopHighlightedProjects = () => {
     };
 
     fetchHighlightedProperties();
+  }, []);
+  
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setCardsPerSlide(getCardsPerSlide());
+      setCurrentIndex(0);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Format price for display
@@ -95,29 +119,6 @@ const TopHighlightedProjects = () => {
     );
   }
 
-  // Responsive cards per slide
-  const getCardsPerSlide = () => {
-    if (typeof window !== 'undefined') {
-      if (window.innerWidth >= 1024) return 3; // Desktop: 3 cards
-      if (window.innerWidth >= 768) return 2;  // Tablet: 2 cards
-      return 1; // Mobile: 1 card
-    }
-    return 3; // Default for SSR
-  };
-
-  const [cardsPerSlide, setCardsPerSlide] = useState(getCardsPerSlide());
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setCardsPerSlide(getCardsPerSlide());
-      setCurrentIndex(0);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const totalSlides = Math.ceil(projects.length / cardsPerSlide);
   const maxIndex = totalSlides - 1;
 
@@ -170,8 +171,8 @@ const TopHighlightedProjects = () => {
             <div className="flex overflow-x-auto gap-4 scroll-smooth scrollbar-hide px-2 pb-4"
                  style={{ scrollSnapType: 'x mandatory' }}>
               {projects.map((project) => (
+                <Link to={`/property/${project.id}`} key={project.id} className="block">
                 <div
-                  key={project.id}
                   className="group overflow-hidden transition-all duration-300 hover:-translate-y-1 min-w-[270px] max-w-[270px] h-64 shrink-0 rounded-lg"
                   style={{ scrollSnapAlign: 'center' }}
                 >
@@ -201,6 +202,11 @@ const TopHighlightedProjects = () => {
                             {project.location}
                           </p>
                         </div>
+                        <div className="pt-3">
+                          <button className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-xs font-semibold py-2 rounded-full transition-all duration-200 border border-white/50">
+                            View Details
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -223,6 +229,7 @@ const TopHighlightedProjects = () => {
                     </div>
                   </div>
                 </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -238,8 +245,8 @@ const TopHighlightedProjects = () => {
                   <div key={slideIndex} className="w-full shrink-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {projects.slice(slideIndex * cardsPerSlide, slideIndex * cardsPerSlide + cardsPerSlide).map((project) => (
+                        <Link to={`/property/${project.id}`} key={project.id} className="block">
                         <div
-                          key={project.id}
                           className="group overflow-hidden transition-all duration-300 hover:-translate-y-1 h-72 rounded-lg"
                         >
                           <div className="relative h-full overflow-hidden rounded-lg">
@@ -268,6 +275,11 @@ const TopHighlightedProjects = () => {
                                     {project.location}
                                   </p>
                                 </div>
+                                <div className="pt-3">
+                                  <button className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-xs font-semibold py-2 rounded-full transition-all duration-200 border border-white/50">
+                                    View Details
+                                  </button>
+                                </div>
                               </div>
                             </div>
 
@@ -290,6 +302,7 @@ const TopHighlightedProjects = () => {
                             </div>
                           </div>
                         </div>
+                        </Link>
                       ))}
                     </div>
                   </div>

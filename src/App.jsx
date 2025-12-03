@@ -12,6 +12,7 @@ import AdminLoginPage from './pages/admin-view/AdminLoginPage'
 import AdminDashboard from './pages/admin-view/AdminDashboard'
 import AdminPostPropertyPage from './pages/admin-view/AdminPostPropertyPage'
 import AllPropertyListing from './pages/admin-view/AllPropertyListing'
+import InquiriesPage from './pages/admin-view/InquiriesPage'
 
 function App() {
   return (
@@ -84,6 +85,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AllPropertyListing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/inquiries"
+            element={
+              <ProtectedRoute>
+                <InquiriesPage />
               </ProtectedRoute>
             }
           />

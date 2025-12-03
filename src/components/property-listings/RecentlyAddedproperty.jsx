@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import { MapPin } from "lucide-react";
@@ -13,7 +14,7 @@ function RecentlyAddedproperty() {
     const fetchRecentlyAddedProperties = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/features/recently-added?limit=6');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/properties/recently-added?limit=6`);
         const data = await response.json();
         
         if (data.success) {
@@ -178,8 +179,9 @@ function RecentlyAddedproperty() {
         <div className="px-4">
           <Slider {...mobileSettings}>
             {projects.map((project, index) => (
-              <div key={index} className="pr-3">
-                  <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-purple-100">
+              <div className="pr-3" key={index}>
+                  <Link to={`/property/${properties[index]?.id}`} className="block">
+                    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-purple-100">
                     <div className="relative">
                       {project.image ? (
                         <img
@@ -213,7 +215,8 @@ function RecentlyAddedproperty() {
                       </button>
                     </div>
                   </div>
-                </div>
+                    </div>
+                  </Link>
               </div>
             ))}
           </Slider>
@@ -225,8 +228,9 @@ function RecentlyAddedproperty() {
         <div className="px-4 sm:px-6">
           <Slider {...tabletSettings}>
             {projects.map((project, index) => (
-              <div key={index} className="px-3">
-                <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-purple-100 hover:-translate-y-2">
+              <div className="px-3" key={index}>
+                <Link to={`/property/${properties[index]?.id}`} className="block">
+                  <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-purple-100 hover:-translate-y-2">
                   <div className="relative">
                     <img
                       src={project.image}
@@ -254,7 +258,8 @@ function RecentlyAddedproperty() {
                       </button>
                     </div>
                   </div>
-                </div>
+                  </div>
+                </Link>
               </div>
             ))}
           </Slider>
@@ -266,8 +271,9 @@ function RecentlyAddedproperty() {
         <div className="px-6 lg:px-8">
           <Slider {...desktopSettings}>
             {projects.map((project, index) => (
-              <div key={index} className="px-3">
-                <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-purple-100 hover:-translate-y-3 group">
+              <div className="px-3" key={index}>
+                <Link to={`/property/${properties[index]?.id}`} className="block">
+                  <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-purple-100 hover:-translate-y-3 group">
                   <div className="relative overflow-hidden">
                     <img
                       src={project.image}
@@ -295,7 +301,8 @@ function RecentlyAddedproperty() {
                       </button>
                     </div>
                   </div>
-                </div>
+                  </div>
+                </Link>
               </div>
             ))}
           </Slider>

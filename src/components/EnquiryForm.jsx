@@ -25,19 +25,45 @@ const EnquiryForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert('Thank you for your enquiry! We will get back to you soon.');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        location: '',
-        message: '',
-        enquiryType: 'buy'
+    try {
+      const response = await fetch('http://localhost:5001/api/user/enquiry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          location: formData.location,
+          message: formData.message,
+          enquiryType: formData.enquiryType,
+          source: 'home'
+        })
       });
-    }, 2000);
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(data.message);
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          location: '',
+          message: '',
+          enquiryType: 'buy'
+        });
+      } else {
+        alert(data.error || 'Failed to submit enquiry. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting enquiry:', error);
+      alert('Failed to submit enquiry. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

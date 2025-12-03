@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Share2, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 
 export default function InvestmentProperty() {
@@ -12,7 +13,7 @@ export default function InvestmentProperty() {
     const fetchInvestmentProperties = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/features/investment?limit=6');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/properties/investment?limit=6`);
         const data = await response.json();
         
         if (data.success) {
@@ -120,8 +121,8 @@ export default function InvestmentProperty() {
             className="flex gap-6 overflow-x-auto pb-4 scroll-smooth hide-scrollbar"
           >
             {projects.map((project) => (
+              <Link to={`/property/${project.id}`} key={project.id} className="block">
               <div
-                key={project.id}
                 className="shrink-0 bg-white rounded-lg border border-violet-100 shadow-md hover:shadow-violet-200 transition-shadow duration-300 overflow-hidden min-w-[350px]"
               >
                 <div className="flex">
@@ -165,12 +166,18 @@ export default function InvestmentProperty() {
                       </p>
                     </div>
 
-                    <div className="text-lg font-bold text-violet-500">
-                      {project.priceRange}
+                    <div className="flex items-center justify-between">
+                      <div className="text-lg font-bold text-violet-500">
+                        {project.priceRange}
+                      </div>
+                      <button className="bg-linear-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-all duration-200 transform hover:scale-105">
+                        View Details
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
+              </Link>
             ))}
           </div>
 

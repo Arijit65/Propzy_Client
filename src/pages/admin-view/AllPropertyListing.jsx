@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 import AdminLayout from '../../components/AdminLayout';
-import { Edit, Eye, Trash2, Star, TrendingUp, Award, MapPin, Calendar, Tag, Filter, Search, Download, RefreshCw } from 'lucide-react';
+import { Edit, Eye, Trash2, Star, TrendingUp, Award, MapPin, Calendar, Tag, Filter, Search, Download, RefreshCw, DollarSign, Clock } from 'lucide-react';
 
 const AllPropertyListing = () => {
+  const navigate = useNavigate();
+  const { checkTokenExpiration, adminLogout } = useAuth();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,17 +30,47 @@ const AllPropertyListing = () => {
   const fetchProperties = async () => {
     try {
       setLoading(true);
+      
+      // Check token expiration before making request
+      if (checkTokenExpiration()) {
+        console.log('⏰ Token expired, redirecting to login...');
+        navigate('/admin/login', { replace: true });
+        return;
+      }
+      
       const queryParams = new URLSearchParams({
         page: pagination.currentPage,
         limit: pagination.limit,
         ...filters
       });
 
-      const response = await fetch(`/api/admin/properties?${queryParams}`, {
+      const token = localStorage.getItem('adminToken');
+      console.log('🔑 Admin Token:', token ? 'Present' : 'Missing');
+      console.log('🔑 Token Preview:', token ? token.substring(0, 20) + '...' : 'No token');
+
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/properties?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${token}`
         }
       });
+
+      console.log('📡 Response Status:', response.status);
+      
+      // Handle 401 or 403 - token is invalid or expired
+      if (response.status === 401 || response.status === 403) {
+        console.log('❌ Authentication failed, logging out...');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Error Response:', errorData);
+        adminLogout();
+        navigate('/admin/login', { replace: true });
+        return;
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Error Response:', errorData);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       
@@ -61,7 +95,13 @@ const AllPropertyListing = () => {
   // Update property categorization
   const updatePropertyCategory = async (propertyId, categoryData) => {
     try {
-      const response = await fetch(`/api/admin/properties/${propertyId}/categorize`, {
+      // Check token expiration before making request
+      if (checkTokenExpiration()) {
+        navigate('/admin/login', { replace: true });
+        return false;
+      }
+      
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/properties/${propertyId}/categorize`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -69,6 +109,17 @@ const AllPropertyListing = () => {
         },
         body: JSON.stringify(categoryData)
       });
+
+      // Handle auth errors
+      if (response.status === 401 || response.status === 403) {
+        adminLogout();
+        navigate('/admin/login', { replace: true });
+        return false;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       
@@ -105,7 +156,13 @@ const AllPropertyListing = () => {
   // Bulk update categories
   const bulkUpdateCategories = async (categoryData) => {
     try {
-      const response = await fetch('/api/admin/properties/bulk-categorize', {
+      // Check token expiration before making request
+      if (checkTokenExpiration()) {
+        navigate('/admin/login', { replace: true });
+        return;
+      }
+      
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/properties/bulk-categorize`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -116,6 +173,17 @@ const AllPropertyListing = () => {
           ...categoryData
         })
       });
+
+      // Handle auth errors
+      if (response.status === 401 || response.status === 403) {
+        adminLogout();
+        navigate('/admin/login', { replace: true });
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       
@@ -162,6 +230,10 @@ const AllPropertyListing = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">All Properties</h1>
               <p className="text-gray-600 mt-1">Manage and categorize property listings</p>
+              {/* Debug info */}
+              <p className="text-xs text-gray-500 mt-1">
+                Auth Status: {localStorage.getItem('adminToken') ? '✅ Token Present' : '❌ No Token'}
+              </p>
             </div>
           <div className="flex gap-3">
             <button 
@@ -256,7 +328,7 @@ const AllPropertyListing = () => {
               <span className="text-sm text-blue-700">
                 {selectedProperties.length} properties selected
               </span>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => bulkUpdateCategories({ isFeatured: true })}
                   className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
@@ -274,6 +346,18 @@ const AllPropertyListing = () => {
                   className="px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700"
                 >
                   Mark Highlighted
+                </button>
+                <button
+                  onClick={() => bulkUpdateCategories({ isInvestmentProperty: true })}
+                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                >
+                  Mark Investment
+                </button>
+                <button
+                  onClick={() => bulkUpdateCategories({ isRecentlyAdded: true })}
+                  className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                >
+                  Mark Recent
                 </button>
               </div>
             </div>
@@ -414,13 +498,27 @@ const AllPropertyListing = () => {
                           >
                             <TrendingUp className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-gray-400 hover:text-green-600 rounded">
+                          <button
+                            onClick={() => toggleCategory(property.id, 'isInvestmentProperty')}
+                            className={`p-1 rounded ${property.isInvestmentProperty ? 'text-green-600 bg-green-50' : 'text-gray-400 hover:text-green-600'}`}
+                            title="Toggle Investment Property"
+                          >
+                            <DollarSign className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => toggleCategory(property.id, 'isRecentlyAdded')}
+                            className={`p-1 rounded ${property.isRecentlyAdded ? 'text-indigo-600 bg-indigo-50' : 'text-gray-400 hover:text-indigo-600'}`}
+                            title="Toggle Recently Added"
+                          >
+                            <Clock className="w-4 h-4" />
+                          </button>
+                          <button className="p-1 text-gray-400 hover:text-teal-600 rounded" title="View Property">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-gray-400 hover:text-blue-600 rounded">
+                          <button className="p-1 text-gray-400 hover:text-blue-600 rounded" title="Edit Property">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-gray-400 hover:text-red-600 rounded">
+                          <button className="p-1 text-gray-400 hover:text-red-600 rounded" title="Delete Property">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
