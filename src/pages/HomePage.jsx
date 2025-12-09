@@ -27,9 +27,9 @@ const HomePage = () => {
       {/* <ExploreOptions /> */}
       <PopularTools />
       <ArticlesSection />
-      <Testimonials />
+      {/* <Testimonials /> */}
       <EnquiryForm />
-      <MobileApp />
+      {/* <MobileApp /> */}
       <QuickLinks />
       <MainFooter/>
     </>

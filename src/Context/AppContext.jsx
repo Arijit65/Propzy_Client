@@ -172,6 +172,23 @@ export const ApiProvider = ({ children }) => {
           error: error.response?.data?.message || 'Failed to delete property' 
         };
       }
+    },
+
+    // Search properties
+    searchProperties: async (query) => {
+      try {
+        const url = `http://localhost:5000/api/properties/search?query=${encodeURIComponent(query)}`;
+        console.log('🔍 Searching:', url);
+        const res = await axios.get(url);
+        console.log('🔍 Search results:', res.data);
+        return res.data;
+      } catch (error) {
+        console.error('🔍 Error:', error.response?.data || error.message);
+        return { 
+          success: false, 
+          error: error.response?.data?.error || error.message || 'Search failed' 
+        };
+      }
     }
   };
 

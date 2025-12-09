@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Search, MapPin, Mic } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, MapPin, Mic, X } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
+import { useApi } from '../Context/AppContext'
 import im1 from "@/assets/bhi1.png"
 import im2 from "@/assets/bhi2.png"
 import im3 from "@/assets/bhi3.png"
@@ -14,6 +16,101 @@ const HeroSection = () => {
   const [activeTab, setActiveTab] = useState('Buy');
   const [propertyType, setPropertyType] = useState('All Residential');
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const navigate = useNavigate();
+  const { propertyApi } = useApi();
+  const searchTimeoutRef = useRef(null);
+
+  // Scroll to enquiry form
+  const scrollToEnquiry = () => {
+    const enquirySection = document.getElementById('enquiry-form');
+    if (enquirySection) {
+      enquirySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Search with debouncing
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for debouncing
+    searchTimeoutRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      const result = await propertyApi.searchProperties(searchQuery);
+      if (result.success) {
+        setSuggestions(result.properties || []);
+        setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
+      }
+      setIsSearching(false);
+    }, 500);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, propertyApi]);
+
+  // Handle search submit
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    
+    // Build query params based on active tab and search
+    const params = new URLSearchParams();
+    
+    if (activeTab === 'Rent') params.append('purpose', 'rent');
+    else if (activeTab === 'Buy') params.append('purpose', 'buy');
+    
+    if (propertyType !== 'All Residential') {
+      params.append('propertyType', propertyType.toLowerCase().replace('/', '-'));
+    }
+    
+    // Navigate to property listing with search query as location
+    const searchTerm = searchQuery.toLowerCase().trim();
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    
+    // Try to extract city from search query
+    const cities = ['delhi', 'mumbai', 'bangalore', 'hyderabad', 'pune', 'chennai', 'kolkata', 'ahmedabad'];
+    const foundCity = cities.find(city => searchTerm.includes(city));
+    
+    if (foundCity) {
+      navigate(`/properties/${foundCity}${queryString}`);
+    } else {
+      navigate(`/properties${queryString}`);
+    }
+    
+    setShowSuggestions(false);
+  };
+
+  // Handle suggestion click
+  const handleSuggestionClick = (property) => {
+    navigate(`/property/${property.id}`);
+    setShowSuggestions(false);
+    setSearchQuery('');
+  };
+
+  // Handle tab click
+  const handleTabClick = (tab) => {
+    if (tab === 'Post Property') {
+      navigate('/post-property');
+    } else {
+      setActiveTab(tab);
+    }
+  };
 
   const tabs = ['Buy', 'Rent', 'New Launch', 'Commercial', 'Plots/Land', 'Projects', 'Post Property'];
 
@@ -111,26 +208,83 @@ const HeroSection = () => {
                       alt={slide.title}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/30 to-transparent"></div>
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-1 sm:mb-2">
+                    {/* Enhanced Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50"></div>
+                    
+                    {/* Centered Content Container */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+                        {/* Animated Badge/Tag */}
+                        <motion.div
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2, duration: 0.6 }}
+                          className="inline-block mb-3 sm:mb-4"
+                        >
+                          <span className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-3 sm:px-5 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide uppercase shadow-md">
+                            Featured
+                          </span>
+                        </motion.div>
+
+                        {/* Main Title */}
+                        <motion.h1
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3, duration: 0.6 }}
+                          className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-3 leading-tight tracking-normal"
+                          style={{ textShadow: '0 2px 12px rgba(0, 0, 0, 0.3)' }}
+                        >
                           {slide.title}
-                        </h2>
-                        <h3 className="text-sm sm:text-lg lg:text-xl xl:text-2xl text-violet-200 mb-2 sm:mb-4">
+                        </motion.h1>
+
+                        {/* Decorative Line */}
+                        <motion.div
+                          initial={{ width: 0, opacity: 0 }}
+                          animate={{ width: '60px', opacity: 1 }}
+                          transition={{ delay: 0.4, duration: 0.6 }}
+                          className="h-0.5 bg-gradient-to-r from-violet-400 to-purple-500 mx-auto rounded-full mb-2 sm:mb-3"
+                        ></motion.div>
+
+                        {/* Subtitle */}
+                        <motion.h2
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.5, duration: 0.6 }}
+                          className="text-base sm:text-lg lg:text-xl xl:text-2xl font-medium text-violet-200 mb-2 sm:mb-4 tracking-normal"
+                          style={{ textShadow: '0 1px 8px rgba(0, 0, 0, 0.3)' }}
+                        >
                           {slide.subtitle}
-                        </h3>
-                        <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/90 mb-4 sm:mb-6">
+                        </motion.h2>
+
+                        {/* Description */}
+                        <motion.p
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.6, duration: 0.6 }}
+                          className="text-sm sm:text-base lg:text-lg text-white/90 mb-5 sm:mb-7 max-w-2xl mx-auto leading-relaxed font-normal"
+                          style={{ textShadow: '0 1px 6px rgba(0, 0, 0, 0.3)' }}
+                        >
                           {slide.description}
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                          <button className="bg-violet-500 hover:bg-violet-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full text-sm sm:text-base font-semibold transition-colors duration-200">
-                            View Properties
+                        </motion.p>
+
+                        {/* Call-to-Action Buttons */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.7, duration: 0.6 }}
+                          className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center"
+                        >
+                          <button className="group relative bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white px-6 sm:px-7 py-2.5 sm:py-3 rounded-full text-sm sm:text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 transform w-full sm:w-auto">
+                            <span className="relative z-10">View Properties</span>
+                            <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           </button>
-                          <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/30 px-4 sm:px-6 py-2 sm:py-3 rounded-full text-sm sm:text-base font-semibold transition-all duration-200">
-                            Learn More
+                          <button 
+                            onClick={scrollToEnquiry}
+                            className="group bg-white/10 backdrop-blur-md hover:bg-white/20 text-white border border-white/50 hover:border-white/70 px-6 sm:px-7 py-2.5 sm:py-3 rounded-full text-sm sm:text-base font-semibold transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 transform w-full sm:w-auto"
+                          >
+                            Get In Touch
                           </button>
-                        </div>
+                        </motion.div>
                       </div>
                     </div>
                   </div>
@@ -199,13 +353,13 @@ const HeroSection = () => {
         className="relative z-20 -mt-16 mb-12"
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl overflow-visible">
             {/* Tabs */}
-            <div className="flex items-center border-b border-gray-200 px-6 pt-4">
+            <div className="flex items-center border-b border-gray-200 px-6 pt-4 overflow-x-auto">
               {tabs.map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => handleTabClick(tab)}
                   className={`pb-3 px-4 text-sm font-semibold transition-all relative whitespace-nowrap ${
                     activeTab === tab
                       ? 'text-purple-600'
@@ -221,7 +375,7 @@ const HeroSection = () => {
                       FREE
                     </span>
                   )}
-                  {activeTab === tab && (
+                  {activeTab === tab && tab !== 'Post Property' && (
                     <motion.div
                       layoutId="activeTab"
                       className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600"
@@ -232,7 +386,7 @@ const HeroSection = () => {
             </div>
 
             {/* Search Bar */}
-            <div className="p-6">
+            <div className="p-6 relative">
               <div className="flex items-center gap-3 flex-wrap lg:flex-nowrap">
                 {/* Property Type Dropdown */}
                 <div className="relative">
@@ -260,17 +414,109 @@ const HeroSection = () => {
                 </div>
 
                 {/* Search Input */}
-                <div className="flex-1 relative min-w-[300px]">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                <div className="flex-1 relative min-w-[300px]" style={{ zIndex: 100 }}>
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                     <Search className="w-5 h-5 text-gray-400" />
                   </div>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
                     placeholder='Search "Flats for rent in sector 77 Noida"'
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full pl-12 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent relative z-10 bg-white"
                   />
+                  {searchQuery && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSuggestions([]);
+                        setShowSuggestions(false);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-20 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                  {isSearching && (
+                    <div className="absolute right-10 top-1/2 -translate-y-1/2 z-20">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                    </div>
+                  )}
+                  
+                  {/* Suggestions Dropdown */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <>
+                      {/* Backdrop to close dropdown */}
+                      <div 
+                        className="fixed inset-0 z-30" 
+                        onClick={() => setShowSuggestions(false)}
+                      />
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-40">
+                        <div className="p-2">
+                          <div className="text-xs text-gray-500 px-3 py-2 font-semibold">
+                            {suggestions.length} Properties Found
+                          </div>
+                          {suggestions.slice(0, 8).map((property) => (
+                            <button
+                              key={property.id}
+                              onClick={() => handleSuggestionClick(property)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg transition flex items-start gap-3"
+                            >
+                              {property.images && property.images.length > 0 && (
+                                <img
+                                  src={property.images[0]}
+                                  alt={property.apartment || 'Property'}
+                                  className="w-16 h-16 object-cover rounded flex-shrink-0"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 truncate">
+                                  {property.apartment || property.propertyType || 'Property'}
+                                </p>
+                                <p className="text-xs text-gray-600 truncate">
+                                  {property.locality}, {property.city}
+                                </p>
+                                <p className="text-xs text-purple-600 font-semibold mt-1">
+                                  ₹{property.expectedPrice ? Number(property.expectedPrice).toLocaleString('en-IN') : 'N/A'}
+                                </p>
+                              </div>
+                              <div className="text-xs text-gray-500 flex-shrink-0">
+                                {property.bedrooms}BHK
+                              </div>
+                            </button>
+                          ))}
+                          {suggestions.length > 8 && (
+                            <button
+                              onClick={handleSearch}
+                              className="w-full text-center py-2 text-sm text-purple-600 hover:text-purple-700 font-semibold"
+                            >
+                              View all {suggestions.length} results →
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {showSuggestions && suggestions.length === 0 && searchQuery.length >= 2 && !isSearching && (
+                    <>
+                      {/* Backdrop to close dropdown */}
+                      <div 
+                        className="fixed inset-0 z-30" 
+                        onClick={() => setShowSuggestions(false)}
+                      />
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-2xl p-4 z-40">
+                        <p className="text-sm text-gray-500 text-center">
+                          No properties found for "{searchQuery}"
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Action Buttons Group */}
@@ -292,7 +538,10 @@ const HeroSection = () => {
                   </button>
 
                   {/* Search Button */}
-                  <button className="px-8 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-md whitespace-nowrap">
+                  <button 
+                    onClick={handleSearch}
+                    className="px-8 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-md whitespace-nowrap"
+                  >
                     Search
                   </button>
                 </div>

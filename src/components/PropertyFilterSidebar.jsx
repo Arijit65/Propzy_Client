@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 
-const PropertyFilterSidebar = () => {
+const PropertyFilterSidebar = ({ onFilterChange, initialFilters = {} }) => {
   const [expandedSections, setExpandedSections] = useState({
     budget: true,
     propertyType: true,
@@ -12,14 +12,33 @@ const PropertyFilterSidebar = () => {
     amenities: false
   });
 
+  // Convert price from number to readable format
+  const formatPriceDisplay = (price) => {
+    if (!price) return '';
+    const num = parseInt(price);
+    if (num >= 10000000) return `${(num / 10000000).toFixed(0)} Cr`;
+    if (num >= 100000) return `${(num / 100000).toFixed(0)} L`;
+    return price;
+  };
+
+  // Format bedrooms to BHK display
+  const formatBedroomsDisplay = (bedrooms) => {
+    if (!bedrooms) return '';
+    if (bedrooms === '1' && initialFilters.propertyType?.includes('rk')) return '1 RK';
+    return `${bedrooms} BHK`;
+  };
+
   const [selectedFilters, setSelectedFilters] = useState({
-    budget: { min: '', max: '' },
-    propertyTypes: [],
-    bhk: [],
+    budget: { 
+      min: formatPriceDisplay(initialFilters.minPrice) || '', 
+      max: formatPriceDisplay(initialFilters.maxPrice) || '' 
+    },
+    propertyTypes: initialFilters.propertyType ? [initialFilters.propertyType] : [],
+    bhk: initialFilters.bedrooms ? [formatBedroomsDisplay(initialFilters.bedrooms)] : [],
     postedBy: [],
-    furnishing: [],
+    furnishing: initialFilters.furnishing ? [initialFilters.furnishing] : [],
     availability: '',
-    amenities: []
+    amenities: initialFilters.amenities ? initialFilters.amenities.split(',').filter(Boolean) : []
   });
 
   const toggleSection = (section) => {
@@ -39,7 +58,7 @@ const PropertyFilterSidebar = () => {
   };
 
   const clearFilters = () => {
-    setSelectedFilters({
+    const clearedFilters = {
       budget: { min: '', max: '' },
       propertyTypes: [],
       bhk: [],
@@ -47,39 +66,151 @@ const PropertyFilterSidebar = () => {
       furnishing: [],
       availability: '',
       amenities: []
-    });
+    };
+    setSelectedFilters(clearedFilters);
+    if (onFilterChange) {
+      onFilterChange({
+        minPrice: '',
+        maxPrice: '',
+        propertyType: '',
+        bedrooms: '',
+        postedBy: '',
+        furnishing: '',
+        availability: '',
+        amenities: []
+      });
+    }
   };
 
-  const FilterSection = ({ title, sectionKey, children }) => (
-    <div className="border-b border-gray-200 py-4">
-      <button
-        onClick={() => toggleSection(sectionKey)}
-        className="w-full flex items-center justify-between text-left"
-      >
-        <h3 className="font-semibold text-gray-900">{title}</h3>
-        {expandedSections[sectionKey] ? (
-          <ChevronUp className="w-5 h-5 text-gray-500" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-gray-500" />
+  const applyFilters = () => {
+    if (onFilterChange) {
+      // Convert price strings to numbers (e.g., "10 L" -> 1000000)
+      const convertPrice = (priceStr) => {
+        if (!priceStr) return '';
+        const cleaned = priceStr.trim().toUpperCase();
+        if (cleaned.includes('CR')) {
+          return (parseFloat(cleaned) * 10000000).toString();
+        } else if (cleaned.includes('L')) {
+          return (parseFloat(cleaned) * 100000).toString();
+        }
+        return cleaned.replace(/[^\d]/g, '');
+      };
+
+      // Extract bedroom number from format like "3 BHK" or "1 RK"
+      const extractBedrooms = (bhkStr) => {
+        if (!bhkStr) return '';
+        const match = bhkStr.match(/^(\d+)/);
+        return match ? match[1] : '';
+      };
+
+      onFilterChange({
+        minPrice: convertPrice(selectedFilters.budget.min),
+        maxPrice: convertPrice(selectedFilters.budget.max),
+        propertyType: selectedFilters.propertyTypes[0] || '',
+        bedrooms: extractBedrooms(selectedFilters.bhk[0]) || '',
+        postedBy: selectedFilters.postedBy[0] || '',
+        furnishing: selectedFilters.furnishing[0] || '',
+        availability: selectedFilters.availability,
+        amenities: selectedFilters.amenities.join(',')
+      });
+    }
+  };
+
+  // Quick price button handler
+  const handleQuickPrice = (priceLabel) => {
+    const priceValue = priceLabel.replace(' ', '');
+    setSelectedFilters(prev => ({
+      ...prev,
+      budget: { ...prev.budget, max: priceValue }
+    }));
+  };
+
+  // Count active filters
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (selectedFilters.budget.min || selectedFilters.budget.max) count++;
+    if (selectedFilters.propertyTypes.length > 0) count++;
+    if (selectedFilters.bhk.length > 0) count++;
+    if (selectedFilters.postedBy.length > 0) count++;
+    if (selectedFilters.furnishing.length > 0) count++;
+    if (selectedFilters.availability) count++;
+    if (selectedFilters.amenities.length > 0) count++;
+    return count;
+  };
+
+  const FilterSection = ({ title, sectionKey, children }) => {
+    // Count active filters in this section
+    const getSectionActiveCount = () => {
+      switch(sectionKey) {
+        case 'budget':
+          return (selectedFilters.budget.min || selectedFilters.budget.max) ? 1 : 0;
+        case 'propertyType':
+          return selectedFilters.propertyTypes.length;
+        case 'bhk':
+          return selectedFilters.bhk.length;
+        case 'postedBy':
+          return selectedFilters.postedBy.length;
+        case 'furnishing':
+          return selectedFilters.furnishing.length;
+        case 'availability':
+          return selectedFilters.availability ? 1 : 0;
+        case 'amenities':
+          return selectedFilters.amenities.length;
+        default:
+          return 0;
+      }
+    };
+
+    const activeCount = getSectionActiveCount();
+
+    return (
+      <div className="border-b border-gray-200 py-4">
+        <button
+          onClick={() => toggleSection(sectionKey)}
+          className="w-full flex items-center justify-between text-left"
+        >
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+            {activeCount > 0 && (
+              <span className="bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                {activeCount}
+              </span>
+            )}
+          </div>
+          {expandedSections[sectionKey] ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
+          )}
+        </button>
+        {expandedSections[sectionKey] && (
+          <div className="mt-3">{children}</div>
         )}
-      </button>
-      {expandedSections[sectionKey] && (
-        <div className="mt-3">{children}</div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden sticky top-4">
       {/* Header */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="font-bold text-gray-900">Filters</h2>
-        <button
-          onClick={clearFilters}
-          className="text-purple-600 text-sm font-medium hover:underline"
-        >
-          Clear all
-        </button>
+        <div className="flex items-center gap-2">
+          <h2 className="font-bold text-gray-900">Filters</h2>
+          {getActiveFilterCount() > 0 && (
+            <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full font-bold">
+              {getActiveFilterCount()}
+            </span>
+          )}
+        </div>
+        {getActiveFilterCount() > 0 && (
+          <button
+            onClick={clearFilters}
+            className="text-purple-600 text-sm font-medium hover:underline flex items-center gap-1"
+          >
+            <X className="w-3 h-3" />
+            Clear all
+          </button>
+        )}
       </div>
 
       {/* Filter Content */}
@@ -120,7 +251,12 @@ const PropertyFilterSidebar = () => {
                 {['10 L', '20 L', '30 L', '40 L', '50 L', '60 L', '70 L', '80 L', '90 L', '1 Cr'].map((price) => (
                   <button
                     key={price}
-                    className="px-3 py-1 text-xs border border-gray-300 rounded-full hover:border-purple-600 hover:text-purple-600 transition"
+                    onClick={() => handleQuickPrice(price)}
+                    className={`px-3 py-1 text-xs border rounded-full transition ${
+                      selectedFilters.budget.max === price.replace(' ', '')
+                        ? 'border-purple-600 bg-purple-50 text-purple-600'
+                        : 'border-gray-300 hover:border-purple-600 hover:text-purple-600'
+                    }`}
                   >
                     {price}
                   </button>
@@ -132,15 +268,26 @@ const PropertyFilterSidebar = () => {
           {/* Property Type */}
           <FilterSection title="Property Type" sectionKey="propertyType">
             <div className="space-y-2">
-              {['Flat/Apartment', 'Independent House/Villa', 'Independent/Builder Floor', 'Residential Plot'].map((type) => (
-                <label key={type} className="flex items-center space-x-2 cursor-pointer">
+              {[
+                { label: 'Flat/Apartment', value: 'apartment' },
+                { label: 'Independent House/Villa', value: 'house' },
+                { label: 'Independent/Builder Floor', value: 'floor' },
+                { label: 'Residential Plot', value: 'plot' }
+              ].map((type) => (
+                <label key={type.value} className="flex items-center space-x-2 cursor-pointer">
                   <input
-                    type="checkbox"
-                    checked={selectedFilters.propertyTypes.includes(type)}
-                    onChange={() => toggleFilter('propertyTypes', type)}
-                    className="w-4 h-4 text-purple-600 rounded accent-blue-600"
+                    type="radio"
+                    name="propertyType"
+                    checked={selectedFilters.propertyTypes.includes(type.value)}
+                    onChange={() => {
+                      setSelectedFilters(prev => ({
+                        ...prev,
+                        propertyTypes: [type.value]
+                      }));
+                    }}
+                    className="w-4 h-4 text-purple-600 accent-purple-600"
                   />
-                  <span className="text-sm text-gray-700">{type}</span>
+                  <span className="text-sm text-gray-700">{type.label}</span>
                 </label>
               ))}
             </div>
@@ -152,7 +299,12 @@ const PropertyFilterSidebar = () => {
               {['1 RK', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK', '5+ BHK'].map((bhk) => (
                 <button
                   key={bhk}
-                  onClick={() => toggleFilter('bhk', bhk)}
+                  onClick={() => {
+                    setSelectedFilters(prev => ({
+                      ...prev,
+                      bhk: prev.bhk.includes(bhk) ? [] : [bhk]
+                    }));
+                  }}
                   className={`px-3 py-2 text-sm rounded-lg border-2 transition ${
                     selectedFilters.bhk.includes(bhk)
                       ? 'border-purple-600 bg-purple-50 text-purple-600 font-medium'
@@ -238,7 +390,10 @@ const PropertyFilterSidebar = () => {
 
       {/* Apply Button */}
       <div className="p-4 border-t border-gray-200">
-        <button className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
+        <button 
+          onClick={applyFilters}
+          className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
+        >
           Apply Filters
         </button>
       </div>

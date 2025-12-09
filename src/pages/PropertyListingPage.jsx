@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal, MapPin, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useApi } from '../Context/AppContext';
 import PropertyFilterSidebar from '../components/PropertyFilterSidebar';
 import PropertyCard from '../components/PropertyCard';
+import Breadcrumb from '../components/Breadcrumb';
 
 const PropertyListingPage = () => {
   const { location } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { propertyApi } = useApi();
   
   const [showFilters, setShowFilters] = useState(false);
@@ -18,6 +20,28 @@ const PropertyListingPage = () => {
   const [totalProperties, setTotalProperties] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [appliedFilters, setAppliedFilters] = useState({});
+
+  // Handle filter changes from sidebar
+  const handleFilterChange = (filters) => {
+    console.log('Filters changed:', filters);
+    setAppliedFilters(filters);
+    
+    // Update URL search params
+    const newParams = new URLSearchParams(searchParams);
+    
+    Object.keys(filters).forEach(key => {
+      if (filters[key] && filters[key] !== '') {
+        newParams.set(key, filters[key]);
+      } else {
+        newParams.delete(key);
+      }
+    });
+    
+    setSearchParams(newParams);
+    setCurrentPage(1); // Reset to first page when filters change
+    setShowFilters(false); // Close mobile filter on apply
+  };
 
   // Fetch properties based on location
   const fetchProperties = useCallback(async () => {
@@ -39,11 +63,13 @@ const PropertyListingPage = () => {
         minPrice: searchParams.get('minPrice'),
         maxPrice: searchParams.get('maxPrice'),
         locality: searchParams.get('locality'),
+        postedBy: searchParams.get('postedBy'),
+        furnishing: searchParams.get('furnishing'),
       };
 
       // Remove undefined/null values
       Object.keys(params).forEach(key => 
-        params[key] === undefined || params[key] === null ? delete params[key] : {}
+        params[key] === undefined || params[key] === null || params[key] === '' ? delete params[key] : {}
       );
 
       console.log('Query params:', params);
@@ -95,22 +121,39 @@ const PropertyListingPage = () => {
     ).join(' ');
   };
 
+  // Build breadcrumb items dynamically
+  const getBreadcrumbItems = () => {
+    const items = [
+      { label: 'Properties', href: '/properties' }
+    ];
+
+    if (location) {
+      items.push({
+        label: formatLocationName(location),
+        href: null // Last item, no href
+      });
+    }
+
+    const purpose = searchParams.get('purpose');
+    if (purpose) {
+      const purposeLabel = purpose.charAt(0).toUpperCase() + purpose.slice(1);
+      items.splice(1, 0, {
+        label: `For ${purposeLabel}`,
+        href: `/properties?purpose=${purpose}`
+      });
+    }
+
+    return items;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb & Header */}
+      {/* Breadcrumb */}
+      <Breadcrumb items={getBreadcrumbItems()} />
+
+      {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center text-sm text-gray-600 mb-2">
-            <span className="hover:text-purple-600 cursor-pointer">Home</span>
-            <span className="mx-2">/</span>
-            <span className="hover:text-purple-600 cursor-pointer">Properties</span>
-            {location && (
-              <>
-                <span className="mx-2">/</span>
-                <span className="text-gray-900 font-medium">{formatLocationName(location)}</span>
-              </>
-            )}
-          </div>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">
@@ -143,7 +186,16 @@ const PropertyListingPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block lg:col-span-1">
-            <PropertyFilterSidebar />
+            <PropertyFilterSidebar 
+              onFilterChange={handleFilterChange}
+              initialFilters={{
+                purpose: searchParams.get('purpose'),
+                propertyType: searchParams.get('propertyType'),
+                bedrooms: searchParams.get('bedrooms'),
+                minPrice: searchParams.get('minPrice'),
+                maxPrice: searchParams.get('maxPrice'),
+              }}
+            />
           </div>
 
           {/* Mobile Filter Overlay */}
@@ -160,7 +212,16 @@ const PropertyListingPage = () => {
                 className="absolute left-0 top-0 bottom-0 w-80 bg-white overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
               >
-                <PropertyFilterSidebar />
+                <PropertyFilterSidebar 
+                  onFilterChange={handleFilterChange}
+                  initialFilters={{
+                    purpose: searchParams.get('purpose'),
+                    propertyType: searchParams.get('propertyType'),
+                    bedrooms: searchParams.get('bedrooms'),
+                    minPrice: searchParams.get('minPrice'),
+                    maxPrice: searchParams.get('maxPrice'),
+                  }}
+                />
               </motion.div>
             </motion.div>
           )}

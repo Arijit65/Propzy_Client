@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApi } from '../Context/AppContext';
+import Breadcrumb from '../components/Breadcrumb';
 import {
   Heart,
   Share2,
@@ -455,26 +456,60 @@ This property is under construction phase. The flat is semifurnished. This resid
     }
   };
 
+  // Build breadcrumb items dynamically based on property data
+  const getBreadcrumbItems = () => {
+    if (!property) return [];
+
+    const items = [
+      { label: 'Properties', href: '/properties' }
+    ];
+
+    // Add city if available
+    if (property.city) {
+      const citySlug = property.city.toLowerCase().replace(/\s+/g, '-');
+      items.push({
+        label: `Property in ${property.city}`,
+        href: `/properties/${citySlug}`
+      });
+    }
+
+    // Add property type if available
+    if (property.propertyType) {
+      const typeLabel = property.propertyType.charAt(0).toUpperCase() + property.propertyType.slice(1);
+      items.push({
+        label: `${typeLabel}s in ${property.city || 'All Locations'}`,
+        href: property.city ? `/properties/${property.city.toLowerCase().replace(/\s+/g, '-')}?propertyType=${property.propertyType}` : `/properties?propertyType=${property.propertyType}`
+      });
+    }
+
+    // Add locality if available
+    if (property.locality) {
+      items.push({
+        label: `${property.propertyType || 'Properties'} in ${property.locality}`,
+        href: null
+      });
+    }
+
+    // Add final breadcrumb with bedrooms
+    if (property.bedrooms && property.locality) {
+      items.push({
+        label: `${property.bedrooms} BHK ${property.propertyType || 'Property'} in ${property.locality}`,
+        href: null
+      });
+    } else if (property.apartment) {
+      items.push({
+        label: property.apartment,
+        href: null
+      });
+    }
+
+    return items;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb Navigation */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center text-sm text-gray-600 flex-wrap gap-2">
-            <Link to="/" className="hover:text-purple-600 transition">Home</Link>
-            <span>/</span>
-            <Link to="/properties" className="hover:text-purple-600 transition">Property in Noida</Link>
-            <span>/</span>
-            <Link to="/properties" className="hover:text-purple-600 transition">Flats in Noida</Link>
-            <span>/</span>
-            <Link to="/properties" className="hover:text-purple-600 transition">Flats in Noida Expressway</Link>
-            <span>/</span>
-            <Link to="/properties" className="hover:text-purple-600 transition">Flats in Sector 146 Noida</Link>
-            <span>/</span>
-            <span className="text-gray-900">3 BHK Flats in Sector 146 Noida</span>
-          </div>
-        </div>
-      </div>
+      {property && <Breadcrumb items={getBreadcrumbItems()} />}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Main Content - Full Width */}

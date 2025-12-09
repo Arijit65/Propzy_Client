@@ -1,27 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronDown, User, Bell, Menu, X } from 'lucide-react';
 import PostPropertyComingPopup from './PostPropertyComingPopup';
 
-const Navbar = () => {
+const SecondaryNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isPostPropertyPopupOpen, setIsPostPropertyPopupOpen] = useState(false);
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
-  const navigate = useNavigate();
-
-  // Handle scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.pageYOffset;
-      setIsScrolled(scrollTop > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const dropdownMenus = {
     buyers: {
@@ -54,7 +40,7 @@ const Navbar = () => {
           content: (
             <div className="bg-purple-50 p-4 rounded-lg border border-blue-100">
               <div className="flex items-start space-x-3">
-                <div className="bg-purple-600 p-2.5 rounded flex-shrink-0">
+                <div className="bg-purple-600 p-2.5 rounded shrink-0">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
                   </svg>
@@ -132,7 +118,7 @@ const Navbar = () => {
           content: (
             <div className="bg-purple-50 p-4 rounded-lg border border-blue-100">
               <div className="flex items-start space-x-3">
-                <div className="bg-purple-600 p-2.5 rounded flex-shrink-0">
+                <div className="bg-purple-600 p-2.5 rounded shrink-0">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
                   </svg>
@@ -282,21 +268,13 @@ const Navbar = () => {
   };
 
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-sm shadow-sm' 
-          : 'bg-white/10 backdrop-blur-md'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 cursor-pointer">
-            <span className="text-2xl font-bold bg-gradient-to-r from-purple-700 via-purple-400 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-linear-to-r from-purple-700 via-purple-400 to-purple-600 bg-clip-text text-transparent">
               Propszy
             </span>
           </Link>
@@ -307,17 +285,11 @@ const Navbar = () => {
             onMouseEnter={() => setIsLocationDropdownOpen(true)}
             onMouseLeave={() => setIsLocationDropdownOpen(false)}
           >
-            <div className={`flex items-center space-x-1 cursor-pointer hover:bg-white/10 px-2 py-1.5 rounded transition ${
-              isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-            }`}>
-              <span className={`font-medium text-sm transition-colors duration-300 ${
-                isScrolled ? 'text-gray-700' : 'text-white'
-              }`}>
+            <div className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 px-2 py-1.5 rounded transition">
+              <span className="font-medium text-xs text-gray-700">
                 All India
               </span>
-              <ChevronDown className={`w-3 h-3 transition-colors duration-300 ${
-                isScrolled ? 'text-gray-700' : 'text-white'
-              }`} />
+              <ChevronDown className="w-3 h-3 text-gray-700" />
             </div>
 
             {/* Location Dropdown Menu */}
@@ -406,23 +378,16 @@ const Navbar = () => {
                 onMouseEnter={() => handleMouseEnter(key)}
                 onMouseLeave={handleMouseLeave}
               >
-                <button className={`hover:text-purple-600 transition font-medium px-3 py-2 flex items-center space-x-1 text-sm ${
-                  isScrolled ? 'text-gray-700' : 'text-white hover:text-purple-300'
-                }`}>
+                <button className="text-gray-700 hover:text-purple-600 transition font-medium px-3 py-2 flex items-center space-x-1 text-xs">
                   <span>{menu.title}</span>
                 </button>
 
                 {/* Dropdown Menu */}
-                <AnimatePresence>
-                  {activeDropdown === key && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 w-[900px]"
-                      style={{ zIndex: 100 }}
-                    >
+                {activeDropdown === key && (
+                  <div
+                    className="absolute left-1/2 transform -translate-x-1/2 top-full pt-2 w-[900px]"
+                    style={{ zIndex: 100 }}
+                  >
                       <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
                         <div className="grid grid-cols-3 gap-6 p-6">
                           {menu.sections.map((section, idx) => (
@@ -464,17 +429,14 @@ const Navbar = () => {
                           <span className="text-gray-500">(9AM-11PM IST)</span>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
               </div>
             ))}
 
             <Link
               to="/insights"
-              className={`relative hover:text-purple-600 transition font-medium px-3 py-2 text-sm ${
-                isScrolled ? 'text-gray-700' : 'text-white hover:text-purple-300'
-              }`}
+              className="relative text-gray-700 hover:text-purple-600 transition font-medium px-3 py-2 text-xs"
             >
               Insights
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
@@ -487,56 +449,34 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsPostPropertyPopupOpen(true)}
-              className={`hidden md:flex items-center px-4 py-2 rounded-lg transition font-bold shadow-sm text-sm ${
-                isScrolled 
-                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
-                  : 'bg-purple-600 text-white hover:bg-purple-700'
-              }`}
+              className="hidden md:flex items-center px-4 py-1.5 rounded-lg transition font-bold shadow-sm text-xs bg-purple-600 text-white hover:bg-purple-700"
             >
               <span>Post property</span>
               <span className="ml-2 bg-green-500 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">FREE</span>
             </button>
-            <button className={`p-1.5 rounded-full transition ${
-              isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-            }`}>
-              <svg className={`w-4 h-4 transition-colors duration-300 ${
-                isScrolled ? 'text-gray-700' : 'text-white'
-              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="p-1.5 rounded-full transition hover:bg-gray-100">
+              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </button>
-            <button className={`p-1.5 rounded-full transition relative ${
-              isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-            }`}>
-              <Bell className={`w-4 h-4 transition-colors duration-300 ${
-                isScrolled ? 'text-gray-700' : 'text-white'
-              }`} />
+            <button className="p-1.5 rounded-full transition relative hover:bg-gray-100">
+              <Bell className="w-4 h-4 text-gray-700" />
               <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
             </button>
-            <button className={`flex items-center space-x-1 px-2 py-1.5 rounded transition ${
-              isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-            }`}>
+            <button className="flex items-center space-x-1 px-2 py-1.5 rounded transition hover:bg-gray-100">
               <div className="w-6 h-6 bg-linear-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
-              <ChevronDown className={`w-3 h-3 transition-colors duration-300 ${
-                isScrolled ? 'text-gray-700' : 'text-white'
-              }`} />
+              <ChevronDown className="w-3 h-3 text-gray-700" />
             </button>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`lg:hidden p-1.5 rounded transition ${
-                isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-              }`}
+              className="lg:hidden p-1.5 rounded transition hover:bg-gray-100"
             >
               {isMenuOpen ? (
-                <X className={`w-5 h-5 transition-colors duration-300 ${
-                  isScrolled ? 'text-gray-700' : 'text-white'
-                }`} />
+                <X className="w-5 h-5 text-gray-700" />
               ) : (
-                <Menu className={`w-5 h-5 transition-colors duration-300 ${
-                  isScrolled ? 'text-gray-700' : 'text-white'
-                }`} />
+                <Menu className="w-5 h-5 text-gray-700" />
               )}
             </button>
           </div>
@@ -544,49 +484,38 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className={`lg:hidden py-4 border-t transition-colors duration-300 ${
-              isScrolled ? 'border-gray-200 bg-white/95' : 'border-white/20 bg-black/20 backdrop-blur-sm'
-            }`}
-          >
+          <div className="lg:hidden py-4 border-t border-gray-200 bg-white/95">
             <div className="flex flex-col space-y-2">
               {Object.entries(dropdownMenus).map(([key, menu]) => (
-                <a key={key} href="#" className={`hover:text-purple-600 transition py-2 px-3 rounded font-medium text-sm ${
-                  isScrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'
-                }`}>
+                <a key={key} href="#" className="text-gray-700 hover:text-purple-600 hover:bg-gray-100 transition py-2 px-3 rounded font-medium text-sm">
                   {menu.title}
                 </a>
               ))}
-              <Link to="/insights" className={`hover:text-purple-600 transition py-2 px-3 rounded font-medium text-sm ${
-                isScrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'
-              }`}>
+              <Link to="/insights" className="text-gray-700 hover:text-purple-600 hover:bg-gray-100 transition py-2 px-3 rounded font-medium text-sm">
                 Insights
               </Link>
               <button
                 onClick={() => setIsPostPropertyPopupOpen(true)}
-                className={`px-4 py-2.5 rounded-lg transition font-bold text-left mt-2 ${
-                  isScrolled 
-                    ? 'bg-purple-600 text-white hover:bg-purple-700' 
-                    : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border border-white/30'
-                }`}
+                className="px-4 py-2.5 rounded-lg transition font-bold text-left mt-2 bg-purple-600 text-white hover:bg-purple-700"
               >
                 Post property FREE
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
-      </div>
+        </div>
+        
+        {/* Post Property Coming Soon Popup */}
+        <PostPropertyComingPopup 
+          isOpen={isPostPropertyPopupOpen} 
+          onClose={() => setIsPostPropertyPopupOpen(false)} 
+        />
+      </nav>
       
-      {/* Post Property Coming Soon Popup */}
-      <PostPropertyComingPopup 
-        isOpen={isPostPropertyPopupOpen} 
-        onClose={() => setIsPostPropertyPopupOpen(false)} 
-      />
-    </motion.nav>
+      {/* Spacer to prevent content from being hidden under fixed navbar */}
+      <div className="h-16"></div>
+    </>
   );
 };
 
-export default Navbar;
+export default SecondaryNavbar;

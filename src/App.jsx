@@ -1,6 +1,7 @@
 import './App.css'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import SecondaryNavbar from './components/SecondaryNavbar'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useAuth } from './Context/AuthContext'
@@ -34,7 +35,7 @@ function App() {
             path="/properties"
             element={
               <>
-                <Navbar />
+                <SecondaryNavbar />
                 <PropertyListingPage />
                 <Footer />
               </>
@@ -44,7 +45,7 @@ function App() {
             path="/properties/:location"
             element={
               <>
-                <Navbar />
+                <SecondaryNavbar />
                 <PropertyListingPage />
                 <Footer />
               </>
@@ -54,7 +55,7 @@ function App() {
             path="/property/:id"
             element={
               <>
-                <Navbar />
+                <SecondaryNavbar />
                 <PropertyDetailPage />
                 <Footer />
               </>
